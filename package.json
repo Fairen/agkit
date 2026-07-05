@@ -1,0 +1,46 @@
+{
+  "name": "souk",
+  "version": "0.5.0",
+  "description": "Scaffold and manage plugin marketplaces for Claude Code and GitHub Copilot, distributed via any Git host (GitHub, GitLab, Bitbucket, Gitea, self-hosted). Init, add plugins from built-in or remote templates, sync, validate, bump.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "souk": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "templates",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "claude",
+    "claude-code",
+    "github-copilot",
+    "copilot",
+    "plugin",
+    "marketplace",
+    "scaffold",
+    "cli",
+    "generator",
+    "agentic"
+  ],
+  "dependencies": {
+    "@clack/prompts": "^0.11.0",
+    "commander": "^14.0.0",
+    "picocolors": "^1.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.6.0"
+  }
+}

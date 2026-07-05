@@ -1,0 +1,7 @@
+{
+  "extraKnownMarketplaces": {
+    "{{marketplaceName}}": {
+      "source": {{teamSource}}
+    }
+  }
+}
