@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { Command } from "commander";
 import { addPlugin } from "./commands/add.js";
 import { buildCommand } from "./commands/build.js";
@@ -7,14 +8,18 @@ import { listCommand } from "./commands/list.js";
 import { syncCommand } from "./commands/sync.js";
 import { validateCommand } from "./commands/validate.js";
 
+const { version } = JSON.parse(
+  readFileSync(new URL("../package.json", import.meta.url), "utf8"),
+) as { version: string };
+
 const program = new Command();
 
 program
-  .name("agpo")
+  .name("agkit")
   .description(
     "Scaffold and manage plugin marketplaces for Claude Code and GitHub Copilot, distributed via any Git host.",
   )
-  .version("0.5.0");
+  .version(version);
 
 program
   .command("init")
@@ -34,7 +39,7 @@ program
 
 program
   .command("add")
-  .argument("[template]", "template name, local path, gh:/gl: shorthand, or git URL (see `agpo list`)")
+  .argument("[template]", "template name, local path, gh:/gl: shorthand, or git URL (see `agkit list`)")
   .argument("[name]", "plugin name (kebab-case)")
   .description("Scaffold a plugin from a template and register it in the catalog")
   .option("-d, --description <text>", "one-line plugin description")

@@ -53,7 +53,7 @@ function computeFiles(root: string, mp: Marketplace, ids: string[]): GeneratedFi
 export async function buildCommand(startDir: string, opts: BuildOptions = {}): Promise<void> {
   const root = findMarketplaceRoot(startDir);
   if (!root) {
-    p.log.error("No .claude-plugin/marketplace.json found. Run `agpo init` first.");
+    p.log.error("No .claude-plugin/marketplace.json found. Run `agkit init` first.");
     process.exitCode = 1;
     return;
   }
@@ -68,7 +68,7 @@ export async function buildCommand(startDir: string, opts: BuildOptions = {}): P
   if (ids.length === 0) {
     if (!opts.quiet) {
       p.log.info(
-        "No tier-2 targets to build. Add one with `agpo init --agents …` (codex, cursor) or pass `--target codex,cursor`.",
+        "No tier-2 targets to build. Add one with `agkit init --agents …` (codex, cursor) or pass `--target codex,cursor`.",
       );
     }
     return;
@@ -92,7 +92,7 @@ export async function buildCommand(startDir: string, opts: BuildOptions = {}): P
     if (drift.length > 0) {
       p.log.error(
         `Tier-2 artifacts out of date (${ids.join(", ")}):\n  ${drift.join("\n  ")}\n` +
-          "Run `agpo build` to regenerate.",
+          "Run `agkit build` to regenerate.",
       );
       process.exitCode = 1;
     } else if (!opts.quiet) {
@@ -122,7 +122,7 @@ export async function buildCommand(startDir: string, opts: BuildOptions = {}): P
 
 /**
  * Refresh only the tier-2 targets whose root registry already exists on disk.
- * Called by `sync` so that, once a user has opted into a target via `agpo build`,
+ * Called by `sync` so that, once a user has opted into a target via `agkit build`,
  * the generated registries never drift as plugins are added or bumped.
  */
 export function refreshBuiltTargets(root: string, mp: Marketplace): string[] {

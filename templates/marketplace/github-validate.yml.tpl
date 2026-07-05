@@ -14,6 +14,6 @@ jobs:
         with:
           node-version: 22
       - name: Validate catalog
-        run: npx --yes agpo validate
+        run: npx --yes agkit validate
       - name: Check tier-2 artifacts are fresh
-        run: npx --yes agpo build --check
+        run: npx --yes agkit build --check

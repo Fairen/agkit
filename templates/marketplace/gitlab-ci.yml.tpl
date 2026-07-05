@@ -4,5 +4,5 @@ validate-marketplace:
     - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
     - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
   script:
-    - npx --yes agpo validate
-    - npx --yes agpo build --check
+    - npx --yes agkit validate
+    - npx --yes agkit build --check

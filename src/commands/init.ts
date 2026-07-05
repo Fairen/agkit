@@ -76,7 +76,7 @@ export async function initCommand(
   dirArg: string | undefined,
   opts: InitOptions,
 ): Promise<void> {
-  p.intro(pc.bgCyan(pc.black("  agpo init  ")));
+  p.intro(pc.bgCyan(pc.black("  agkit init  ")));
 
   const targetDir = path.resolve(dirArg ?? ".");
   const defaultName = path
@@ -302,8 +302,8 @@ export async function initCommand(
       remote
         ? `git remote add origin ${remote.httpsUrl}  # if not already set`
         : "git remote add origin <your-git-url>",
-      "agpo add skill my-first-skill",
-      "agpo validate",
+      "agkit add skill my-first-skill",
+      "agkit validate",
       "git add -A && git commit -m 'feat: initial marketplace'",
       "git push -u origin main",
       "",
@@ -318,7 +318,7 @@ export async function initCommand(
     p.log.warn(
       `Recorded tier 2/3 target(s) in metadata.targets: ${needBuild.map((id) => getAdapter(id)?.label).join(", ")}.\n` +
         "These are NOT installable from the Claude catalog alone — they need generated per-agent artifacts. " +
-        "agpo records the intent and documents it; artifact generation (`agpo build --target …`) is not implemented yet. " +
+        "agkit records the intent and documents it; artifact generation (`agkit build --target …`) is not implemented yet. " +
         "See README install notes.",
     );
   }

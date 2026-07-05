@@ -8,7 +8,7 @@ export async function listCommand(): Promise<void> {
     p.log.message(`${pc.cyan(pc.bold(t))}\n  ${TEMPLATE_DESCRIPTIONS[t]}`);
   }
   p.log.message(
-    `Remote and local templates are also supported:\n  agpo add gh:owner/repo/dir my-plugin\n  agpo add gl:owner/repo#v2 my-plugin\n  agpo add https://git.company.io/team/templates.git//skill-fr my-plugin\n  agpo add ./local-template my-plugin`,
+    `Remote and local templates are also supported:\n  agkit add gh:owner/repo/dir my-plugin\n  agkit add gl:owner/repo#v2 my-plugin\n  agkit add https://git.company.io/team/templates.git//skill-fr my-plugin\n  agkit add ./local-template my-plugin`,
   );
-  p.outro("Usage: agpo add <template|spec> <plugin-name>");
+  p.outro("Usage: agkit add <template|spec> <plugin-name>");
 }

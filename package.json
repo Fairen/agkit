@@ -1,11 +1,11 @@
 {
-  "name": "agpo",
-  "version": "0.6.0",
+  "name": "agkit",
+  "version": "0.7.0",
   "description": "Scaffold and manage plugin marketplaces for Claude Code and GitHub Copilot, distributed via any Git host (GitHub, GitLab, Bitbucket, Gitea, self-hosted). Init, add plugins from built-in or remote templates, sync, validate, bump.",
   "license": "MIT",
   "type": "module",
   "bin": {
-    "agpo": "./dist/index.js"
+    "agkit": "./dist/index.js"
   },
   "files": [
     "dist",

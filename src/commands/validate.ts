@@ -33,7 +33,7 @@ export async function validateCommand(
 ): Promise<void> {
   const root = findMarketplaceRoot(startDir);
   if (!root) {
-    p.log.error("No .claude-plugin/marketplace.json found. Run `agpo init` first.");
+    p.log.error("No .claude-plugin/marketplace.json found. Run `agkit init` first.");
     process.exitCode = 1;
     return;
   }
@@ -119,7 +119,7 @@ export async function validateCommand(
               if (manifest.name && manifest.name !== entry.name) {
                 findings.push({
                   level: "warn",
-                  message: `Catalog entry "${label}" but plugin.json declares "${manifest.name}" — run \`agpo sync\``,
+                  message: `Catalog entry "${label}" but plugin.json declares "${manifest.name}" — run \`agkit sync\``,
                 });
               }
               if (
@@ -129,7 +129,7 @@ export async function validateCommand(
               ) {
                 findings.push({
                   level: "warn",
-                  message: `Version drift for "${label}": catalog ${entry.version} vs plugin.json ${manifest.version} — run \`agpo sync\``,
+                  message: `Version drift for "${label}": catalog ${entry.version} vs plugin.json ${manifest.version} — run \`agkit sync\``,
                 });
               }
             } catch {
@@ -153,13 +153,13 @@ export async function validateCommand(
     }
   }
 
-  // 4b. Target agents that need generation (recorded but not built by agpo).
+  // 4b. Target agents that need generation (recorded but not built by agkit).
   if (mp?.metadata?.targets) {
     const needBuild = mp.metadata.targets.filter((id) => (getAdapter(id)?.tier ?? 1) > 1);
     if (needBuild.length > 0) {
       p.log.info(
         `metadata.targets includes tier 2/3 agent(s): ${needBuild.join(", ")}. ` +
-          "The Claude catalog validates here; run `agpo build` to (re)generate their registries and `agpo build --check` in CI.",
+          "The Claude catalog validates here; run `agkit build` to (re)generate their registries and `agkit build --check` in CI.",
       );
     }
   }
