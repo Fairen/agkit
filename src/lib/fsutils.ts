@@ -67,5 +67,5 @@ export function readJson<T>(filePath: string): T {
 
 export function writeJson(filePath: string, data: unknown): void {
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
-  fs.writeFileSync(filePath, JSON.stringify(data, null, 2) + "\n");
+  fs.writeFileSync(filePath, `${JSON.stringify(data, null, 2)}\n`);
 }

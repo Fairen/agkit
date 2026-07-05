@@ -3,18 +3,18 @@ import path from "node:path";
 import * as p from "@clack/prompts";
 import pc from "picocolors";
 import {
-  findMarketplaceRoot,
-  readMarketplace,
-  scanLocalPlugins,
-  type Marketplace,
-} from "../lib/marketplace.js";
-import {
-  TIER2_GENERATORS,
-  TIER2_ROOT_REGISTRY,
-  isTier2Buildable,
   type BuildContext,
   type GeneratedFile,
+  isTier2Buildable,
+  TIER2_GENERATORS,
+  TIER2_ROOT_REGISTRY,
 } from "../lib/build-targets.js";
+import {
+  findMarketplaceRoot,
+  type Marketplace,
+  readMarketplace,
+  scanLocalPlugins,
+} from "../lib/marketplace.js";
 
 export interface BuildOptions {
   targets?: string;
@@ -22,14 +22,20 @@ export interface BuildOptions {
   quiet?: boolean;
 }
 
-function resolveTargets(mp: Marketplace, requested: string | undefined): {
+function resolveTargets(
+  mp: Marketplace,
+  requested: string | undefined,
+): {
   ids: string[];
   unknown: string[];
 } {
   if (requested) {
     const ids: string[] = [];
     const unknown: string[] = [];
-    for (const t of requested.split(",").map((s) => s.trim()).filter(Boolean)) {
+    for (const t of requested
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean)) {
       if (isTier2Buildable(t)) ids.push(t);
       else unknown.push(t);
     }
@@ -40,7 +46,11 @@ function resolveTargets(mp: Marketplace, requested: string | undefined): {
   return { ids, unknown: [] };
 }
 
-function computeFiles(root: string, mp: Marketplace, ids: string[]): GeneratedFile[] {
+function computeFiles(
+  root: string,
+  mp: Marketplace,
+  ids: string[],
+): GeneratedFile[] {
   const ctx: BuildContext = { mp, plugins: scanLocalPlugins(root, mp) };
   const files: GeneratedFile[] = [];
   for (const id of ids) {
@@ -50,10 +60,15 @@ function computeFiles(root: string, mp: Marketplace, ids: string[]): GeneratedFi
   return files;
 }
 
-export async function buildCommand(startDir: string, opts: BuildOptions = {}): Promise<void> {
+export async function buildCommand(
+  startDir: string,
+  opts: BuildOptions = {},
+): Promise<void> {
   const root = findMarketplaceRoot(startDir);
   if (!root) {
-    p.log.error("No .claude-plugin/marketplace.json found. Run `agkit init` first.");
+    p.log.error(
+      "No .claude-plugin/marketplace.json found. Run `agkit init` first.",
+    );
     process.exitCode = 1;
     return;
   }
@@ -128,6 +143,7 @@ export async function buildCommand(startDir: string, opts: BuildOptions = {}): P
 export function refreshBuiltTargets(root: string, mp: Marketplace): string[] {
   const built = (mp.metadata?.targets ?? [])
     .filter(isTier2Buildable)
+    // biome-ignore lint/style/noNonNullAssertion: isTier2Buildable guarantees the registry entry exists
     .filter((id) => fs.existsSync(path.join(root, TIER2_ROOT_REGISTRY[id]!)));
   if (built.length === 0) return [];
   const files = computeFiles(root, mp, built);

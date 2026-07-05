@@ -3,13 +3,6 @@ import path from "node:path";
 import * as p from "@clack/prompts";
 import pc from "picocolors";
 import {
-  DEFAULT_PLUGIN_ROOT,
-  KEBAB_CASE_RE,
-  MARKETPLACE_SCHEMA_URL,
-  RESERVED_MARKETPLACE_NAMES,
-} from "../lib/constants.js";
-import { renderTemplate, templatesDir, writeJson } from "../lib/fsutils.js";
-import {
   AGENT_ADAPTERS,
   DEFAULT_AGENTS,
   getAdapter,
@@ -18,6 +11,13 @@ import {
   renderInstallSections,
   renderTeamSections,
 } from "../lib/agents.js";
+import {
+  DEFAULT_PLUGIN_ROOT,
+  KEBAB_CASE_RE,
+  MARKETPLACE_SCHEMA_URL,
+  RESERVED_MARKETPLACE_NAMES,
+} from "../lib/constants.js";
+import { renderTemplate, templatesDir, writeJson } from "../lib/fsutils.js";
 import {
   getOriginUrl,
   gitInit,
@@ -51,7 +51,10 @@ function validateName(name: string): string | undefined {
 }
 
 function marketplaceTpl(file: string): string {
-  return fs.readFileSync(path.join(templatesDir(), "marketplace", file), "utf8");
+  return fs.readFileSync(
+    path.join(templatesDir(), "marketplace", file),
+    "utf8",
+  );
 }
 
 /** Build the argument for `/plugin marketplace add`, forge-agnostic. */
@@ -65,10 +68,13 @@ function teamSource(remote: RemoteInfo | undefined): string {
   const source =
     remote?.isGitHub && remote.slug
       ? { source: "github", repo: remote.slug }
-      : { source: "url", url: remote?.httpsUrl ?? "https://<git-host>/<owner>/<repo>.git" };
+      : {
+          source: "url",
+          url: remote?.httpsUrl ?? "https://<git-host>/<owner>/<repo>.git",
+        };
   return JSON.stringify(source, null, 2)
     .split("\n")
-    .map((line, i) => (i === 0 ? line : "      " + line))
+    .map((line, i) => (i === 0 ? line : `      ${line}`))
     .join("\n");
 }
 
@@ -103,7 +109,8 @@ export async function initCommand(
   if (!opts.yes) {
     if (!name) {
       const answer = await p.text({
-        message: "Marketplace name (kebab-case, shown in /plugin install <plugin>@<name>)",
+        message:
+          "Marketplace name (kebab-case, shown in /plugin install <plugin>@<name>)",
         initialValue: defaultName,
         validate: (v) => validateName(v),
       });
@@ -189,7 +196,9 @@ export async function initCommand(
   ci = ci ?? "github";
 
   // Resolve target agents.
-  const { ids: agentIds, unknown } = parseAgentList(agentsRaw ?? DEFAULT_AGENTS.join(","));
+  const { ids: agentIds, unknown } = parseAgentList(
+    agentsRaw ?? DEFAULT_AGENTS.join(","),
+  );
   if (unknown.length > 0) {
     p.log.warn(
       `Unknown agent(s) ignored: ${unknown.join(", ")}. Known: ${AGENT_ADAPTERS.map((a) => a.id).join(", ")}.`,
@@ -199,7 +208,9 @@ export async function initCommand(
 
   const remote = repoUrl ? parseRemoteUrl(repoUrl) : undefined;
   if (repoUrl && !remote) {
-    p.log.warn(`Could not parse remote URL "${repoUrl}"; install instructions will use placeholders.`);
+    p.log.warn(
+      `Could not parse remote URL "${repoUrl}"; install instructions will use placeholders.`,
+    );
   }
 
   const s = p.spinner();
@@ -220,7 +231,10 @@ export async function initCommand(
     },
     plugins: [],
   };
-  writeJson(path.join(targetDir, ".claude-plugin", "marketplace.json"), marketplace);
+  writeJson(
+    path.join(targetDir, ".claude-plugin", "marketplace.json"),
+    marketplace,
+  );
 
   // 2. Plugin root
   fs.mkdirSync(path.join(targetDir, "plugins"), { recursive: true });
@@ -308,7 +322,12 @@ export async function initCommand(
       "git push -u origin main",
       "",
       `Target agents: ${targets.map((id) => getAdapter(id)?.label ?? id).join(", ")}`,
-      `Native install (no build): ${targets.filter((id) => getAdapter(id)?.tier === 1).map((id) => getAdapter(id)?.label).join(", ") || "none"}`,
+      `Native install (no build): ${
+        targets
+          .filter((id) => getAdapter(id)?.tier === 1)
+          .map((id) => getAdapter(id)?.label)
+          .join(", ") || "none"
+      }`,
     ].join("\n"),
     "Next steps",
   );

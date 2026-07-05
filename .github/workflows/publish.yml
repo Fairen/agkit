@@ -25,8 +25,14 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: npm config set //registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}
 
-      - name: Install & build
-        run: npm ci && npm run build
+      - name: Install
+        run: npm ci
+
+      - name: Lint, typecheck & test
+        run: npm run lint && npm run typecheck && npm test
+
+      - name: Build
+        run: npm run build
 
       - name: Publish package
         env:

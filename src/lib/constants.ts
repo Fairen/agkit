@@ -17,7 +17,13 @@ export const RESERVED_MARKETPLACE_NAMES = [
 
 export const KEBAB_CASE_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
-export const PLUGIN_TEMPLATES = ["skill", "command", "agent", "hook", "mcp"] as const;
+export const PLUGIN_TEMPLATES = [
+  "skill",
+  "command",
+  "agent",
+  "hook",
+  "mcp",
+] as const;
 export type PluginTemplate = (typeof PLUGIN_TEMPLATES)[number];
 
 export const TEMPLATE_DESCRIPTIONS: Record<PluginTemplate, string> = {
@@ -27,8 +33,6 @@ export const TEMPLATE_DESCRIPTIONS: Record<PluginTemplate, string> = {
     "Plugin exposing a slash command (commands/<name>.md): a prompt shortcut invoked as /<plugin>:<name>.",
   agent:
     "Plugin exposing a subagent (agents/<name>.md): a named specialist with its own role and instructions.",
-  hook:
-    "Plugin exposing an event handler (hooks/hooks.json + script): deterministic automation on Claude Code lifecycle events.",
-  mcp:
-    "Plugin bundling an MCP server (.mcp.json + zero-dependency Node stdio server): external tools for Claude.",
+  hook: "Plugin exposing an event handler (hooks/hooks.json + script): deterministic automation on Claude Code lifecycle events.",
+  mcp: "Plugin bundling an MCP server (.mcp.json + zero-dependency Node stdio server): external tools for Claude.",
 };

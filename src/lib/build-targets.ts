@@ -24,7 +24,7 @@ function sourcePath(mp: Marketplace, dirName: string): string {
 }
 
 function json(value: unknown): string {
-  return JSON.stringify(value, null, 2) + "\n";
+  return `${JSON.stringify(value, null, 2)}\n`;
 }
 
 /** Verbatim re-serialization of a plugin's Claude manifest (strict targets: no extra keys). */
@@ -46,7 +46,9 @@ export function generateCursor(ctx: BuildContext): GeneratedFile[] {
     ...(mp.metadata
       ? {
           metadata: {
-            ...(mp.metadata.description ? { description: mp.metadata.description } : {}),
+            ...(mp.metadata.description
+              ? { description: mp.metadata.description }
+              : {}),
             ...(mp.metadata.version ? { version: mp.metadata.version } : {}),
           },
         }
@@ -57,11 +59,19 @@ export function generateCursor(ctx: BuildContext): GeneratedFile[] {
     })),
   };
   const files: GeneratedFile[] = [
-    { relPath: path.posix.join(".cursor-plugin", "marketplace.json"), content: json(registry) },
+    {
+      relPath: path.posix.join(".cursor-plugin", "marketplace.json"),
+      content: json(registry),
+    },
   ];
   for (const p of plugins) {
     files.push({
-      relPath: path.posix.join(pluginRootRel(mp), p.dirName, ".cursor-plugin", "plugin.json"),
+      relPath: path.posix.join(
+        pluginRootRel(mp),
+        p.dirName,
+        ".cursor-plugin",
+        "plugin.json",
+      ),
       content: manifestCopy(p),
     });
   }
@@ -93,7 +103,12 @@ export function generateCodex(ctx: BuildContext): GeneratedFile[] {
   ];
   for (const p of plugins) {
     files.push({
-      relPath: path.posix.join(pluginRootRel(mp), p.dirName, ".codex-plugin", "plugin.json"),
+      relPath: path.posix.join(
+        pluginRootRel(mp),
+        p.dirName,
+        ".codex-plugin",
+        "plugin.json",
+      ),
       content: manifestCopy(p),
     });
   }

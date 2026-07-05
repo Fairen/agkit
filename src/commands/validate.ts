@@ -3,19 +3,19 @@ import fs from "node:fs";
 import path from "node:path";
 import * as p from "@clack/prompts";
 import pc from "picocolors";
+import { getAdapter } from "../lib/agents.js";
 import {
   KEBAB_CASE_RE,
   MARKETPLACE_DIR,
   PLUGIN_MANIFEST_FILE,
   RESERVED_MARKETPLACE_NAMES,
 } from "../lib/constants.js";
-import { getAdapter } from "../lib/agents.js";
 import {
   findMarketplaceRoot,
+  type Marketplace,
   marketplacePath,
   readMarketplace,
   resolveLocalPluginDir,
-  type Marketplace,
 } from "../lib/marketplace.js";
 
 interface Finding {
@@ -33,7 +33,9 @@ export async function validateCommand(
 ): Promise<void> {
   const root = findMarketplaceRoot(startDir);
   if (!root) {
-    p.log.error("No .claude-plugin/marketplace.json found. Run `agkit init` first.");
+    p.log.error(
+      "No .claude-plugin/marketplace.json found. Run `agkit init` first.",
+    );
     process.exitCode = 1;
     return;
   }
@@ -54,7 +56,10 @@ export async function validateCommand(
   if (mp) {
     // 2. Required fields and naming rules
     if (!mp.name) {
-      findings.push({ level: "error", message: "Missing required field: name" });
+      findings.push({
+        level: "error",
+        message: "Missing required field: name",
+      });
     } else {
       if (!KEBAB_CASE_RE.test(mp.name)) {
         findings.push({
@@ -70,7 +75,10 @@ export async function validateCommand(
       }
     }
     if (!mp.owner?.name) {
-      findings.push({ level: "error", message: "Missing required field: owner.name" });
+      findings.push({
+        level: "error",
+        message: "Missing required field: owner.name",
+      });
     }
     if (!Array.isArray(mp.plugins)) {
       findings.push({ level: "error", message: "plugins must be an array" });
@@ -81,7 +89,10 @@ export async function validateCommand(
     for (const entry of mp.plugins ?? []) {
       const label = entry.name ?? "<unnamed>";
       if (!entry.name) {
-        findings.push({ level: "error", message: "A plugin entry is missing its name" });
+        findings.push({
+          level: "error",
+          message: "A plugin entry is missing its name",
+        });
         continue;
       }
       if (!KEBAB_CASE_RE.test(entry.name)) {
@@ -91,11 +102,17 @@ export async function validateCommand(
         });
       }
       if (seen.has(entry.name)) {
-        findings.push({ level: "error", message: `Duplicate plugin name "${label}"` });
+        findings.push({
+          level: "error",
+          message: `Duplicate plugin name "${label}"`,
+        });
       }
       seen.add(entry.name);
       if (entry.source === undefined) {
-        findings.push({ level: "error", message: `Plugin "${label}" is missing source` });
+        findings.push({
+          level: "error",
+          message: `Plugin "${label}" is missing source`,
+        });
         continue;
       }
 
@@ -107,7 +124,11 @@ export async function validateCommand(
             message: `Plugin "${label}" source resolves to missing directory ${path.relative(root, localDir)}`,
           });
         } else {
-          const manifestPath = path.join(localDir, MARKETPLACE_DIR, PLUGIN_MANIFEST_FILE);
+          const manifestPath = path.join(
+            localDir,
+            MARKETPLACE_DIR,
+            PLUGIN_MANIFEST_FILE,
+          );
           if (!fs.existsSync(manifestPath)) {
             findings.push({
               level: "error",
@@ -115,7 +136,9 @@ export async function validateCommand(
             });
           } else {
             try {
-              const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+              const manifest = JSON.parse(
+                fs.readFileSync(manifestPath, "utf8"),
+              );
               if (manifest.name && manifest.name !== entry.name) {
                 findings.push({
                   level: "warn",
@@ -145,7 +168,9 @@ export async function validateCommand(
 
     // 4. Distribution footgun: relative sources only resolve for Git-based
     // distribution (the nominal case) — informational, not a warning.
-    const hasRelative = (mp.plugins ?? []).some((e) => typeof e.source === "string");
+    const hasRelative = (mp.plugins ?? []).some(
+      (e) => typeof e.source === "string",
+    );
     if (hasRelative) {
       p.log.info(
         "Note: relative plugin sources resolve only when the marketplace is added via Git (any forge), not via a direct URL to marketplace.json.",
@@ -155,7 +180,9 @@ export async function validateCommand(
 
   // 4b. Target agents that need generation (recorded but not built by agkit).
   if (mp?.metadata?.targets) {
-    const needBuild = mp.metadata.targets.filter((id) => (getAdapter(id)?.tier ?? 1) > 1);
+    const needBuild = mp.metadata.targets.filter(
+      (id) => (getAdapter(id)?.tier ?? 1) > 1,
+    );
     if (needBuild.length > 0) {
       p.log.info(
         `metadata.targets includes tier 2/3 agent(s): ${needBuild.join(", ")}. ` +
@@ -167,7 +194,11 @@ export async function validateCommand(
   // 5. Delegate to the official validator when available
   let officialRan = false;
   try {
-    execFileSync("claude", ["plugin", "validate", root, ...(opts.strict ? ["--strict"] : [])], { stdio: "pipe" });
+    execFileSync(
+      "claude",
+      ["plugin", "validate", root, ...(opts.strict ? ["--strict"] : [])],
+      { stdio: "pipe" },
+    );
     officialRan = true;
     p.log.success("claude plugin validate: passed");
   } catch (err: unknown) {
@@ -178,10 +209,13 @@ export async function validateCommand(
       );
     } else {
       officialRan = true;
-      const out = [e.stdout?.toString(), e.stderr?.toString()].filter(Boolean).join("\n").trim();
+      const out = [e.stdout?.toString(), e.stderr?.toString()]
+        .filter(Boolean)
+        .join("\n")
+        .trim();
       findings.push({
         level: "error",
-        message: `claude plugin validate failed${out ? ":\n" + out : ""}`,
+        message: `claude plugin validate failed${out ? `:\n${out}` : ""}`,
       });
     }
   }
@@ -192,7 +226,11 @@ export async function validateCommand(
   for (const f of errors) p.log.error(f.message);
 
   if (errors.length > 0) {
-    p.log.error(pc.red(`Validation failed: ${errors.length} error(s), ${warns.length} warning(s).`));
+    p.log.error(
+      pc.red(
+        `Validation failed: ${errors.length} error(s), ${warns.length} warning(s).`,
+      ),
+    );
     process.exitCode = 1;
   } else {
     p.log.success(

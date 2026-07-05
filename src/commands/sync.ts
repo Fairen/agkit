@@ -1,7 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
 import * as p from "@clack/prompts";
-import { refreshBuiltTargets } from "./build.js";
 import {
   findMarketplaceRoot,
   readMarketplace,
@@ -9,6 +8,7 @@ import {
   scanLocalPlugins,
   writeMarketplace,
 } from "../lib/marketplace.js";
+import { refreshBuiltTargets } from "./build.js";
 
 export interface SyncOptions {
   quiet?: boolean;
@@ -32,7 +32,9 @@ export async function syncCommand(
 ): Promise<void> {
   const root = findMarketplaceRoot(startDir);
   if (!root) {
-    p.log.error("No .claude-plugin/marketplace.json found. Run `agkit init` first.");
+    p.log.error(
+      "No .claude-plugin/marketplace.json found. Run `agkit init` first.",
+    );
     process.exitCode = 1;
     return;
   }
@@ -57,9 +59,18 @@ export async function syncCommand(
       changes.push(`+ added "${entryName}" to the catalog`);
     }
 
-    for (const field of ["version", "description", "author", "keywords", "homepage"] as const) {
+    for (const field of [
+      "version",
+      "description",
+      "author",
+      "keywords",
+      "homepage",
+    ] as const) {
       const value = manifest[field];
-      if (value !== undefined && JSON.stringify(entry[field]) !== JSON.stringify(value)) {
+      if (
+        value !== undefined &&
+        JSON.stringify(entry[field]) !== JSON.stringify(value)
+      ) {
         entry[field] = value as never;
         changes.push(`~ updated ${field} of "${entryName}"`);
       }
@@ -81,7 +92,8 @@ export async function syncCommand(
 
   // Keep already-built tier-2 registries (codex/cursor) fresh.
   const refreshed = refreshBuiltTargets(root, mp);
-  for (const id of refreshed) changes.push(`~ refreshed ${id} tier-2 artifacts`);
+  for (const id of refreshed)
+    changes.push(`~ refreshed ${id} tier-2 artifacts`);
 
   // README plugin list between markers.
   const readmePath = path.join(root, "README.md");

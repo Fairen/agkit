@@ -56,7 +56,9 @@ export function parseRemoteUrl(raw: string): RemoteInfo | undefined {
   let repoPath: string | undefined;
 
   const scp = raw.match(/^(?:[\w.-]+)@([\w.-]+):(.+?)(?:\.git)?\/?$/);
-  const url = raw.match(/^(?:https?|ssh|git):\/\/(?:[\w.-]+@)?([\w.-]+(?::\d+)?)\/(.+?)(?:\.git)?\/?$/);
+  const url = raw.match(
+    /^(?:https?|ssh|git):\/\/(?:[\w.-]+@)?([\w.-]+(?::\d+)?)\/(.+?)(?:\.git)?\/?$/,
+  );
 
   if (scp) {
     host = scp[1];

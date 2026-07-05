@@ -94,7 +94,8 @@ export function resolveTemplate(spec: string): ResolvedTemplate {
       : undefined;
   if (localPath !== undefined) {
     const dir = path.resolve(localPath);
-    if (!fs.existsSync(dir)) throw new Error(`Template directory not found: ${dir}`);
+    if (!fs.existsSync(dir))
+      throw new Error(`Template directory not found: ${dir}`);
     assertTemplateDir(dir, spec);
     return { dir, label: spec, builtin: false };
   }
@@ -116,12 +117,16 @@ export function resolveTemplate(spec: string): ResolvedTemplate {
   } catch (err) {
     fs.rmSync(tmp, { recursive: true, force: true });
     const msg = (err as { stderr?: Buffer }).stderr?.toString().trim();
-    throw new Error(`git clone failed for ${git.cloneUrl}${msg ? `:\n${msg}` : ""}`);
+    throw new Error(
+      `git clone failed for ${git.cloneUrl}${msg ? `:\n${msg}` : ""}`,
+    );
   }
   const dir = git.subdir ? path.join(tmp, git.subdir) : tmp;
   if (!fs.existsSync(dir)) {
     fs.rmSync(tmp, { recursive: true, force: true });
-    throw new Error(`Subdirectory "${git.subdir}" not found in ${git.cloneUrl}`);
+    throw new Error(
+      `Subdirectory "${git.subdir}" not found in ${git.cloneUrl}`,
+    );
   }
   // Never copy the clone's .git into the plugin.
   fs.rmSync(path.join(tmp, ".git"), { recursive: true, force: true });

@@ -31,7 +31,10 @@ program
   .option("-d, --description <text>", "marketplace description")
   .option("-r, --repo <url>", "git remote URL (any forge)")
   .option("--ci <ci>", "CI workflow: github | gitlab | none")
-  .option("--agents <list>", "comma-separated target agents (e.g. claude-code,copilot,codex)")
+  .option(
+    "--agents <list>",
+    "comma-separated target agents (e.g. claude-code,copilot,codex)",
+  )
   .option("-y, --yes", "non-interactive, accept defaults")
   .action(async (dir, opts) => {
     await initCommand(dir, opts);
@@ -39,9 +42,14 @@ program
 
 program
   .command("add")
-  .argument("[template]", "template name, local path, gh:/gl: shorthand, or git URL (see `agkit list`)")
+  .argument(
+    "[template]",
+    "template name, local path, gh:/gl: shorthand, or git URL (see `agkit list`)",
+  )
   .argument("[name]", "plugin name (kebab-case)")
-  .description("Scaffold a plugin from a template and register it in the catalog")
+  .description(
+    "Scaffold a plugin from a template and register it in the catalog",
+  )
   .option("-d, --description <text>", "one-line plugin description")
   .action(async (template, name, opts) => {
     await addPlugin(process.cwd(), template, name, {
@@ -59,7 +67,9 @@ program
 
 program
   .command("validate")
-  .description("Validate the catalog (local checks + `claude plugin validate` if available)")
+  .description(
+    "Validate the catalog (local checks + `claude plugin validate` if available)",
+  )
   .option("--strict", "treat warnings as errors in the official validator")
   .action(async (opts) => {
     await validateCommand(process.cwd(), { strict: opts.strict });
@@ -68,21 +78,43 @@ program
 program
   .command("bump")
   .argument("[plugin]", "plugin name (prompted if omitted)")
-  .argument("[level]", "major | minor | patch | auto (default: auto, from conventional commits)")
-  .description("Bump a plugin version (conventional-commit aware) and sync the catalog")
-  .option("-t, --tag", "commit the bump and create a release tag <plugin>@<version>")
+  .argument(
+    "[level]",
+    "major | minor | patch | auto (default: auto, from conventional commits)",
+  )
+  .description(
+    "Bump a plugin version (conventional-commit aware) and sync the catalog",
+  )
+  .option(
+    "-t, --tag",
+    "commit the bump and create a release tag <plugin>@<version>",
+  )
   .option("--dry-run", "show what would change without writing")
   .action(async (plugin, level, opts) => {
-    await bumpCommand(process.cwd(), plugin, level, { tag: opts.tag, dryRun: opts.dryRun });
+    await bumpCommand(process.cwd(), plugin, level, {
+      tag: opts.tag,
+      dryRun: opts.dryRun,
+    });
   });
 
 program
   .command("build")
-  .description("Generate tier-2 agent artifacts (codex, cursor) from the catalog")
-  .option("--target <list>", "comma-separated tier-2 targets (default: those in metadata.targets)")
-  .option("--check", "verify generated artifacts are up to date (CI); non-zero exit on drift")
+  .description(
+    "Generate tier-2 agent artifacts (codex, cursor) from the catalog",
+  )
+  .option(
+    "--target <list>",
+    "comma-separated tier-2 targets (default: those in metadata.targets)",
+  )
+  .option(
+    "--check",
+    "verify generated artifacts are up to date (CI); non-zero exit on drift",
+  )
   .action(async (opts) => {
-    await buildCommand(process.cwd(), { targets: opts.target, check: opts.check });
+    await buildCommand(process.cwd(), {
+      targets: opts.target,
+      check: opts.check,
+    });
   });
 
 program

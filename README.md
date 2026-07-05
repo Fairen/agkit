@@ -8,6 +8,15 @@ Think `ng` for Angular, but for agent plugin marketplaces: `init` gives you a pu
 
 > Unofficial community tool, not affiliated with Anthropic, GitHub, OpenAI, or Cursor.
 
+## Installation
+
+Requires **Node.js ≥ 18**. Run it on demand with `npx` (nothing to install), or install the CLI globally:
+
+```bash
+npx agkit --help          # run without installing
+npm install -g agkit      # or install the `agkit` command globally
+```
+
 ## How agents consume your marketplace
 
 agkit always writes one canonical catalog — `.claude-plugin/marketplace.json` — plus your plugins under `plugins/<name>/`. That catalog is the single source of truth. How each agent reads it falls into two groups:
@@ -19,16 +28,18 @@ You can target several agents from a single repository — the plugin content un
 
 ## Quick start
 
+Create and distribute your first marketplace in four steps:
+
 ```bash
-npx agkit init my-marketplace
+npx agkit init my-marketplace   # 1. scaffold a push-ready repository
 cd my-marketplace
-agkit add skill tdd-coach
-agkit validate
+agkit add skill tdd-coach       # 2. add a plugin from a built-in template
+agkit validate                  # 3. check the catalog is valid
 git remote add origin <your-git-url>
-git add -A && git commit -m "feat: initial marketplace" && git push -u origin main
+git add -A && git commit -m "feat: initial marketplace" && git push -u origin main   # 4. distribute via git
 ```
 
-The default init targets Claude Code and GitHub Copilot (both native). To target Codex or Cursor, see below.
+That's the whole loop — once pushed, anyone can install your plugins straight from the repo (the per-agent install command is in [Create a marketplace for your agent](#create-a-marketplace-for-your-agent)). `init` targets Claude Code and GitHub Copilot by default; add `--agents codex,cursor` to serve more.
 
 ## Create a marketplace for your agent
 
@@ -171,4 +182,4 @@ A template is any directory containing `.claude-plugin/plugin.json` (adopted, `n
 
 ## License
 
-MIT
+[MIT](LICENSE) © fair3n

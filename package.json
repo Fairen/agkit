@@ -3,6 +3,13 @@
   "version": "0.7.0",
   "description": "Scaffold and manage plugin marketplaces for Claude Code and GitHub Copilot, distributed via any Git host (GitHub, GitLab, Bitbucket, Gitea, self-hosted). Init, add plugins from built-in or remote templates, sync, validate, bump.",
   "license": "MIT",
+  "author": "fair3n <fairen.dev@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Fairen/agkit.git"
+  },
+  "homepage": "https://github.com/Fairen/agkit#readme",
+  "bugs": "https://github.com/Fairen/agkit/issues",
   "type": "module",
   "bin": {
     "agkit": "./dist/index.js"
@@ -10,7 +17,8 @@
   "files": [
     "dist",
     "templates",
-    "README.md"
+    "README.md",
+    "LICENSE"
   ],
   "engines": {
     "node": ">=18.0.0"
@@ -19,6 +27,11 @@
     "build": "tsup",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
+    "lint": "biome check",
+    "lint:fix": "biome check --write",
+    "format": "biome format --write",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
@@ -39,8 +52,10 @@
     "picocolors": "^1.1.0"
   },
   "devDependencies": {
+    "@biomejs/biome": "^2.5.2",
     "@types/node": "^22.0.0",
     "tsup": "^8.0.0",
-    "typescript": "^5.6.0"
+    "typescript": "^5.6.0",
+    "vitest": "^4.1.9"
   }
 }

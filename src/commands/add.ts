@@ -8,13 +8,13 @@ import {
   TEMPLATE_DESCRIPTIONS,
 } from "../lib/constants.js";
 import { copyTemplateDir, readJson, writeJson } from "../lib/fsutils.js";
-import { resolveTemplate } from "../lib/templates.js";
 import {
   findMarketplaceRoot,
   pluginRootDir,
   readMarketplace,
   writeMarketplace,
 } from "../lib/marketplace.js";
+import { resolveTemplate } from "../lib/templates.js";
 import { syncCommand } from "./sync.js";
 
 export interface AddOptions {
@@ -64,7 +64,9 @@ export async function addPlugin(
       message: "Plugin name (kebab-case)",
       placeholder: "my-plugin",
       validate: (v) =>
-        KEBAB_CASE_RE.test(v) ? undefined : "Must be kebab-case (lowercase, digits, hyphens)",
+        KEBAB_CASE_RE.test(v)
+          ? undefined
+          : "Must be kebab-case (lowercase, digits, hyphens)",
     });
     if (p.isCancel(answer)) return cancel();
     name = answer;
@@ -108,7 +110,7 @@ export async function addPlugin(
     authorName: mp.owner?.name ?? "Unknown",
   };
 
-  let resolved;
+  let resolved: ReturnType<typeof resolveTemplate>;
   try {
     resolved = resolveTemplate(templateSpec);
   } catch (err) {
@@ -119,7 +121,8 @@ export async function addPlugin(
   try {
     copyTemplateDir(resolved.dir, destDir, vars);
   } finally {
-    if (resolved.cleanup) fs.rmSync(resolved.cleanup, { recursive: true, force: true });
+    if (resolved.cleanup)
+      fs.rmSync(resolved.cleanup, { recursive: true, force: true });
   }
 
   // Remote/local templates may ship a plain plugin.json (not .tpl): force the

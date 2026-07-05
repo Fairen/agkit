@@ -6,9 +6,9 @@ import { MARKETPLACE_DIR, PLUGIN_MANIFEST_FILE } from "../lib/constants.js";
 import { readJson, writeJson } from "../lib/fsutils.js";
 import {
   findMarketplaceRoot,
+  type PluginManifest,
   readMarketplace,
   scanLocalPlugins,
-  type PluginManifest,
 } from "../lib/marketplace.js";
 import { syncCommand } from "./sync.js";
 
@@ -65,7 +65,11 @@ interface CommitAnalysis {
  *   feat                        -> minor
  *   anything else (fix, perf…)  -> patch
  */
-function analyzeCommits(root: string, pluginDir: string, since?: string): CommitAnalysis {
+function analyzeCommits(
+  root: string,
+  pluginDir: string,
+  since?: string,
+): CommitAnalysis {
   const range = since ? [`${since}..HEAD`] : [];
   let raw = "";
   try {
@@ -79,8 +83,12 @@ function analyzeCommits(root: string, pluginDir: string, since?: string): Commit
   } catch {
     return { level: undefined, commits: 0, reasons: ["not a git repository"] };
   }
-  const commits = raw.split("\x1e").map((c) => c.trim()).filter(Boolean);
-  if (commits.length === 0) return { level: undefined, commits: 0, reasons: [] };
+  const commits = raw
+    .split("\x1e")
+    .map((c) => c.trim())
+    .filter(Boolean);
+  if (commits.length === 0)
+    return { level: undefined, commits: 0, reasons: [] };
 
   let level: BumpLevel = "patch";
   const reasons: string[] = [];
@@ -110,7 +118,9 @@ export async function bumpCommand(
 ): Promise<void> {
   const root = findMarketplaceRoot(startDir);
   if (!root) {
-    p.log.error("No .claude-plugin/marketplace.json found. Run `agkit init` first.");
+    p.log.error(
+      "No .claude-plugin/marketplace.json found. Run `agkit init` first.",
+    );
     process.exitCode = 1;
     return;
   }
@@ -141,13 +151,17 @@ export async function bumpCommand(
 
   const local = locals.find((l) => (l.manifest.name || l.dirName) === name);
   if (!local) {
-    p.log.error(`No local plugin named "${name}". Known: ${locals.map((l) => l.manifest.name || l.dirName).join(", ")}`);
+    p.log.error(
+      `No local plugin named "${name}". Known: ${locals.map((l) => l.manifest.name || l.dirName).join(", ")}`,
+    );
     process.exitCode = 1;
     return;
   }
 
   if (levelArg && !["major", "minor", "patch", "auto"].includes(levelArg)) {
-    p.log.error(`Invalid level "${levelArg}". Use major, minor, patch, or auto.`);
+    p.log.error(
+      `Invalid level "${levelArg}". Use major, minor, patch, or auto.`,
+    );
     process.exitCode = 1;
     return;
   }
@@ -168,7 +182,9 @@ export async function bumpCommand(
     p.log.info(
       `${analysis.commits} commit(s)${sinceTag ? ` since ${pc.cyan(sinceTag)}` : " (no previous release tag)"}:\n  ` +
         analysis.reasons.slice(0, 12).join("\n  ") +
-        (analysis.reasons.length > 12 ? `\n  … ${analysis.reasons.length - 12} more` : ""),
+        (analysis.reasons.length > 12
+          ? `\n  … ${analysis.reasons.length - 12} more`
+          : ""),
     );
   } else {
     level = levelArg as BumpLevel;
@@ -178,11 +194,17 @@ export async function bumpCommand(
   const tagName = `${name}@${next}`;
 
   if (opts.dryRun) {
-    p.log.info(`[dry-run] ${name}: ${current} -> ${pc.green(next)} (${level})${opts.tag ? ` + tag ${tagName}` : ""}`);
+    p.log.info(
+      `[dry-run] ${name}: ${current} -> ${pc.green(next)} (${level})${opts.tag ? ` + tag ${tagName}` : ""}`,
+    );
     return;
   }
 
-  const manifestPath = path.join(local.dir, MARKETPLACE_DIR, PLUGIN_MANIFEST_FILE);
+  const manifestPath = path.join(
+    local.dir,
+    MARKETPLACE_DIR,
+    PLUGIN_MANIFEST_FILE,
+  );
   const manifest = readJson<PluginManifest>(manifestPath);
   manifest.version = next;
   writeJson(manifestPath, manifest);
@@ -197,11 +219,17 @@ export async function bumpCommand(
       git(root, ["add", "-A"]);
       git(root, ["commit", "-m", `chore(release): ${tagName}`]);
       git(root, ["tag", tagName]);
-      p.log.success(`Committed and tagged ${pc.cyan(tagName)} — push with: git push --follow-tags`);
+      p.log.success(
+        `Committed and tagged ${pc.cyan(tagName)} — push with: git push --follow-tags`,
+      );
     } catch (err) {
-      p.log.warn(`Version bumped but commit/tag failed: ${(err as Error).message}`);
+      p.log.warn(
+        `Version bumped but commit/tag failed: ${(err as Error).message}`,
+      );
     }
   } else {
-    p.log.info("Commit the change, then push. Use --tag to commit and tag in one step.");
+    p.log.info(
+      "Commit the change, then push. Use --tag to commit and tag in one step.",
+    );
   }
 }

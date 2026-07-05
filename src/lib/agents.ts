@@ -1,5 +1,3 @@
-import type { RemoteInfo } from "./git.js";
-
 /**
  * A coding-agent target. Adapters are tiered by how much structure they need:
  *
@@ -44,7 +42,10 @@ const claudeCode: AgentAdapter = {
   label: "Claude Code",
   tier: 1,
   install: (arg, name) => ({
-    lines: [`/plugin marketplace add ${arg}`, `/plugin install <plugin-name>@${name}`],
+    lines: [
+      `/plugin marketplace add ${arg}`,
+      `/plugin install <plugin-name>@${name}`,
+    ],
   }),
   teamSettings: { path: ".claude/settings.json" },
 };
@@ -78,7 +79,9 @@ const cursor: AgentAdapter = {
   label: "Cursor",
   tier: 2,
   install: () => ({
-    lines: ["# add the marketplace in Cursor, then: /plugin install <plugin-name>"],
+    lines: [
+      "# add the marketplace in Cursor, then: /plugin install <plugin-name>",
+    ],
     note: "Requires a committed Cursor registry (.cursor-plugin/). Generate it with `agkit build --target cursor` (planned).",
   }),
 };
@@ -129,10 +132,16 @@ export function getAdapter(id: string): AgentAdapter | undefined {
   return AGENT_ADAPTERS.find((a) => a.id === id);
 }
 
-export function parseAgentList(raw: string): { ids: string[]; unknown: string[] } {
+export function parseAgentList(raw: string): {
+  ids: string[];
+  unknown: string[];
+} {
   const ids: string[] = [];
   const unknown: string[] = [];
-  for (const part of raw.split(",").map((s) => s.trim()).filter(Boolean)) {
+  for (const part of raw
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean)) {
     if (getAdapter(part)) {
       if (!ids.includes(part)) ids.push(part);
     } else {
@@ -153,7 +162,8 @@ export function renderInstallSections(
     const a = getAdapter(id);
     if (!a) continue;
     const hint = a.install(marketplaceArg, marketplaceName);
-    const tierTag = a.tier === 1 ? "" : ` _(tier ${a.tier} — requires generation)_`;
+    const tierTag =
+      a.tier === 1 ? "" : ` _(tier ${a.tier} — requires generation)_`;
     blocks.push(
       `**${a.label}**${tierTag}\n\n\`\`\`\n${hint.lines.join("\n")}\n\`\`\`` +
         (hint.note ? `\n\n> ${hint.note}` : ""),
@@ -163,12 +173,17 @@ export function renderInstallSections(
 }
 
 /** Compose the README team-setup section for agents that support it. */
-export function renderTeamSections(agentIds: string[], teamSourceBlock: string, marketplaceName: string): string {
+export function renderTeamSections(
+  agentIds: string[],
+  teamSourceBlock: string,
+  marketplaceName: string,
+): string {
   const supported = agentIds
     .map(getAdapter)
     .filter((a): a is AgentAdapter => Boolean(a?.teamSettings));
   if (supported.length === 0) return "";
   const paths = supported
+    // biome-ignore lint/style/noNonNullAssertion: teamSettings is guaranteed by the filter above
     .map((a) => `- **${a.label}** — \`${a.teamSettings!.path}\``)
     .join("\n");
   return (
@@ -182,7 +197,11 @@ export function renderTeamSections(agentIds: string[], teamSourceBlock: string, 
 }
 
 /** The AGENTS.md root file, read natively by most agents for context. */
-export function renderAgentsMd(marketplaceName: string, description: string, agentIds: string[]): string {
+export function renderAgentsMd(
+  marketplaceName: string,
+  description: string,
+  agentIds: string[],
+): string {
   const labels = agentIds.map((id) => getAdapter(id)?.label ?? id).join(", ");
   return `# ${marketplaceName}
 
