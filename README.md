@@ -212,10 +212,10 @@ git add -A && git commit -m "feat: initial marketplace" && git push -u origin ma
 | Command | What it does |
 | :------ | :----------- |
 | `agkit init [dir]` | Scaffolds a git-first marketplace: `.claude-plugin/marketplace.json` (with `$schema`, `pluginRoot`, `targets`), `plugins/`, `AGENTS.md`, a per-agent README, `examples/team-settings.json`, CI (GitHub Actions or GitLab CI), `.gitignore`, `git init`. Pick target agents with `--agents` (see the **Target agents** section). Non-interactive with `-y`. |
-| `agkit add <template\|spec> <name>` | Scaffolds a plugin from a built-in template (`skill`, `command`, `agent`, `hook`, `mcp`) **or a remote/local one** — `gh:owner/repo/dir#ref`, `gl:owner/repo`, any git URL with `//subdir` and `#ref`, or a local path. Registers it in the catalog and refreshes the README plugin table. |
+| `agkit add <template\|spec> <name>` | Scaffolds a plugin from a built-in template (`skill`, `command`, `agent`, `hook`, `mcp`) **or a remote/local one** — `gh:owner/repo/dir#ref`, `gl:owner/repo`, any git URL with `//subdir` and `#ref`, or a local path. Registers it in the catalog and refreshes the README table and `AGENTS.md`. |
 | `agkit build [--target] [--check]` | Generates the registries for **Codex** and **Cursor** from the catalog: their committed `marketplace.json` + per-plugin manifest mirrors. Default targets are the ones in `metadata.targets`; `--target codex,cursor` overrides. `--check` fails on drift (CI). |
-| `agkit bump [plugin] [level]` | Bumps a plugin version from conventional commits scoped to its directory since the last `<plugin>@x.y.z` tag (`feat`→minor, breaking→major, else patch), or an explicit `major\|minor\|patch`. `--tag` commits and tags; `--dry-run` previews. Catalog, README, and any built registries stay in sync. |
-| `agkit sync` | Reconciles the catalog with what's on disk. Source of truth: each plugin's `.claude-plugin/plugin.json`. Adds missing entries, fixes drift, flags orphans, regenerates the README table, and refreshes any already-built Codex/Cursor registry. |
+| `agkit bump [plugin] [level]` | Bumps a plugin version from conventional commits scoped to its directory since the last `<plugin>@x.y.z` tag (`feat`→minor, breaking→major, else patch), or an explicit `major\|minor\|patch`. Prepends a dated entry to `plugins/<name>/CHANGELOG.md` from those commits. `--tag` commits and tags; `--dry-run` previews. Catalog, README, `AGENTS.md`, and any built registries stay in sync. |
+| `agkit sync` | Reconciles the catalog with what's on disk. Source of truth: each plugin's `.claude-plugin/plugin.json`. Adds missing entries, fixes drift, flags orphans, regenerates the README table and the `AGENTS.md` plugin list, and refreshes any already-built Codex/Cursor registry. |
 | `agkit validate [--strict]` | Local checks (JSON validity, kebab-case, reserved names, source resolution, manifest presence, version drift) plus delegation to `claude plugin validate` when the Claude Code CLI is installed (`--strict` forwarded). Non-zero exit on error — CI-ready. |
 | `agkit list` | Lists available plugin templates. |
 
@@ -237,6 +237,17 @@ Every init also writes a root `AGENTS.md`, read natively by most agents for repo
 ## 🔄 Keeping registries fresh
 
 Generation is opt-in: run `agkit build` once to enable Codex/Cursor. From then on, `agkit add`, `agkit bump`, and `agkit sync` refresh the generated registries automatically, so they never drift as plugins change. In CI, run `agkit build --check` to fail the build if a committed registry is out of date (the generated GitHub Actions / GitLab CI workflows already do this).
+
+---
+
+## 📝 Generated documentation
+
+agkit maintains a small set of human-facing docs derived from the canonical catalog, so they never drift:
+
+- **README plugin table** and **`AGENTS.md` plugin list** — regenerated between `<!-- agkit:plugins:start -->` / `<!-- agkit:plugins:end -->` markers on every mutating command (`add`, `bump`, `sync`). The name links to a plugin's `homepage` when set, and a `Keywords` column appears when any plugin declares keywords. Drop the same markers into any Markdown file to have that list maintained there too.
+- **Per-plugin `CHANGELOG.md`** — `agkit bump` prepends a dated, newest-on-top entry built from the conventional commits it analyses, so each plugin carries its own release history (committed alongside the bump with `--tag`).
+
+Everything derives from `.claude-plugin/marketplace.json` and the per-plugin manifests — edit those (or run `agkit sync`) and the docs follow.
 
 ---
 

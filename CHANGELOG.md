@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.8.0
+
+### Added
+- **Generated documentation is now part of the lifecycle.** Alongside the README plugin table, agkit keeps two more docs in sync from the canonical catalog — no extra command, they refresh on every `add` / `bump` / `sync`:
+  - **`AGENTS.md` plugin list** — the root `AGENTS.md` now carries an auto-maintained plugin list between `<!-- agkit:plugins:start -->` / `<!-- agkit:plugins:end -->` markers. Previously `AGENTS.md` was written once at init and drifted as plugins changed; it now stays current like the README table.
+  - **Richer README table** — the plugin name links to its `homepage` when set, and a `Keywords` column appears when any plugin declares keywords.
+- **Per-plugin `CHANGELOG.md` at `agkit bump`** — bump prepends a dated, newest-on-top entry to `plugins/<name>/CHANGELOG.md`, built from the same conventional-commit analysis that drives the version bump (previously computed only to pick the level, then discarded). `--dry-run` reports it; `--tag` commits it with the release. Falls back to a generic line when there is no git history.
+
+### Fixed
+- **Plugin sources are always marketplace-root-relative** (`./plugins/<name>`). When `metadata.pluginRoot` was set, `add`/`sync` registered a bare directory name (e.g. `"my-plugin"`), which the official `claude plugin validate` rejects with `plugins.N.source: Invalid input` — string sources must match `^\./`. Existing bare-name catalogs still resolve (backward compatible); agkit just no longer generates them.
+
+### Internal
+- New `src/lib/docs.ts` centralizes the catalog-derived doc renderers (plugin table, `AGENTS.md` list, changelog entry) and the marker replacement, covered by `src/lib/docs.test.ts`.
+
 ## 0.7.0
 
 ### Notes

@@ -1,3 +1,5 @@
+import { PLUGINS_END, PLUGINS_START, renderAgentsPluginList } from "./docs.js";
+
 /**
  * A coding-agent target. Adapters are tiered by how much structure they need:
  *
@@ -211,6 +213,12 @@ This repository is a plugin marketplace managed with [agkit](https://www.npmjs.c
 The catalog lives in \`.claude-plugin/marketplace.json\`; each plugin lives under \`plugins/<name>/\`.
 
 Target agents: ${labels}.
+
+## Plugins
+
+${PLUGINS_START}
+${renderAgentsPluginList([])}
+${PLUGINS_END}
 
 ## For agents working in this repo
 

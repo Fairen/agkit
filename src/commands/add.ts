@@ -140,11 +140,10 @@ export async function addPlugin(
   }
   const template = resolved.label;
 
-  // Register in the catalog. With pluginRoot set, the bare directory name is
-  // a valid source; otherwise fall back to an explicit relative path.
-  const source = mp.metadata?.pluginRoot
-    ? name
-    : `./${path.relative(root, destDir).split(path.sep).join("/")}`;
+  // Register in the catalog with a marketplace-root-relative source. This is the
+  // only string form the official schema accepts (it must match `^\./`); a bare
+  // directory name fails `claude plugin validate` even when pluginRoot is set.
+  const source = `./${path.relative(root, destDir).split(path.sep).join("/")}`;
   mp.plugins.push({ name, source, description, version: "0.1.0" });
   writeMarketplace(root, mp);
 

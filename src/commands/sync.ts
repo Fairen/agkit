@@ -2,6 +2,13 @@ import fs from "node:fs";
 import path from "node:path";
 import * as p from "@clack/prompts";
 import {
+  PLUGINS_END,
+  PLUGINS_START,
+  renderAgentsPluginList,
+  renderPluginTable,
+  replaceBetweenMarkers,
+} from "../lib/docs.js";
+import {
   findMarketplaceRoot,
   readMarketplace,
   resolveLocalPluginDir,
@@ -14,8 +21,31 @@ export interface SyncOptions {
   quiet?: boolean;
 }
 
-const README_START = "<!-- agkit:plugins:start -->";
-const README_END = "<!-- agkit:plugins:end -->";
+/**
+ * Re-inject the plugin list between agkit markers in a doc file, if present.
+ * No-op when the file or the markers are missing.
+ */
+function refreshMarkedDoc(
+  root: string,
+  relPath: string,
+  body: string,
+  label: string,
+  changes: string[],
+): void {
+  const abs = path.join(root, relPath);
+  if (!fs.existsSync(abs)) return;
+  const content = fs.readFileSync(abs, "utf8");
+  const updated = replaceBetweenMarkers(
+    content,
+    PLUGINS_START,
+    PLUGINS_END,
+    body,
+  );
+  if (updated !== undefined && updated !== content) {
+    fs.writeFileSync(abs, updated);
+    changes.push(`~ refreshed ${label}`);
+  }
+}
 
 /**
  * Reconcile marketplace.json with the plugins on disk.
@@ -49,11 +79,11 @@ export async function syncCommand(
     let entry = mp.plugins.find((e) => e.name === entryName);
 
     if (!entry) {
+      // Marketplace-root-relative source: the only string form the official
+      // schema accepts (`^\./`). Bare names fail `claude plugin validate`.
       entry = {
         name: entryName,
-        source: mp.metadata?.pluginRoot
-          ? local.dirName
-          : `./${path.relative(root, local.dir).split(path.sep).join("/")}`,
+        source: `./${path.relative(root, local.dir).split(path.sep).join("/")}`,
       };
       mp.plugins.push(entry);
       changes.push(`+ added "${entryName}" to the catalog`);
@@ -95,36 +125,21 @@ export async function syncCommand(
   for (const id of refreshed)
     changes.push(`~ refreshed ${id} tier-2 artifacts`);
 
-  // README plugin list between markers.
-  const readmePath = path.join(root, "README.md");
-  if (fs.existsSync(readmePath)) {
-    const readme = fs.readFileSync(readmePath, "utf8");
-    const start = readme.indexOf(README_START);
-    const end = readme.indexOf(README_END);
-    if (start !== -1 && end !== -1 && end > start) {
-      const table =
-        mp.plugins.length === 0
-          ? "_No plugins yet. Add one with `agkit add <template> <name>`._"
-          : [
-              "| Plugin | Version | Description |",
-              "| :----- | :------ | :---------- |",
-              ...mp.plugins.map(
-                (e) =>
-                  `| \`${e.name}\` | ${e.version ?? "—"} | ${e.description ?? ""} |`,
-              ),
-            ].join("\n");
-      const updated =
-        readme.slice(0, start + README_START.length) +
-        "\n" +
-        table +
-        "\n" +
-        readme.slice(end);
-      if (updated !== readme) {
-        fs.writeFileSync(readmePath, updated);
-        changes.push("~ refreshed plugin list in README.md");
-      }
-    }
-  }
+  // Auto-maintained plugin lists between agkit markers.
+  refreshMarkedDoc(
+    root,
+    "README.md",
+    renderPluginTable(mp.plugins),
+    "plugin list in README.md",
+    changes,
+  );
+  refreshMarkedDoc(
+    root,
+    "AGENTS.md",
+    renderAgentsPluginList(mp.plugins),
+    "plugin list in AGENTS.md",
+    changes,
+  );
 
   if (!opts.quiet) {
     if (changes.length === 0) {

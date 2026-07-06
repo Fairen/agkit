@@ -1,6 +1,6 @@
 {
   "name": "agkit",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "Scaffold and manage plugin marketplaces for Claude Code and GitHub Copilot, distributed via any Git host (GitHub, GitLab, Bitbucket, Gitea, self-hosted). Init, add plugins from built-in or remote templates, sync, validate, bump.",
   "license": "MIT",
   "author": "fair3n <fairen.dev@gmail.com>",

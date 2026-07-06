@@ -1,8 +1,10 @@
 import { execFileSync } from "node:child_process";
+import fs from "node:fs";
 import path from "node:path";
 import * as p from "@clack/prompts";
 import pc from "picocolors";
 import { MARKETPLACE_DIR, PLUGIN_MANIFEST_FILE } from "../lib/constants.js";
+import { prependChangelogEntry, renderChangelogEntry } from "../lib/docs.js";
 import { readJson, writeJson } from "../lib/fsutils.js";
 import {
   findMarketplaceRoot,
@@ -167,11 +169,11 @@ export async function bumpCommand(
   }
 
   const current = local.manifest.version ?? "0.1.0";
+  const sinceTag = lastReleaseTag(root, name);
+  const analysis = analyzeCommits(root, local.dir, sinceTag);
   let level: BumpLevel;
 
   if (!levelArg || levelArg === "auto") {
-    const sinceTag = lastReleaseTag(root, name);
-    const analysis = analyzeCommits(root, local.dir, sinceTag);
     if (!analysis.level) {
       p.log.info(
         `No commits touching ${path.relative(root, local.dir)}${sinceTag ? ` since ${sinceTag}` : ""} — nothing to bump.`,
@@ -193,9 +195,16 @@ export async function bumpCommand(
   const next = incrementSemver(current, level);
   const tagName = `${name}@${next}`;
 
+  // Changelog subjects: the analysed commit subjects, with their level prefix
+  // stripped. Empty when there is no git history (e.g. a forced explicit bump).
+  const subjects =
+    analysis.commits > 0
+      ? analysis.reasons.map((r) => r.replace(/^(?:major|minor|patch)\s+/, ""))
+      : [];
+
   if (opts.dryRun) {
     p.log.info(
-      `[dry-run] ${name}: ${current} -> ${pc.green(next)} (${level})${opts.tag ? ` + tag ${tagName}` : ""}`,
+      `[dry-run] ${name}: ${current} -> ${pc.green(next)} (${level})${opts.tag ? ` + tag ${tagName}` : ""} + CHANGELOG.md entry`,
     );
     return;
   }
@@ -209,7 +218,22 @@ export async function bumpCommand(
   manifest.version = next;
   writeJson(manifestPath, manifest);
 
-  // Propagate to catalog + README.
+  // Prepend a dated entry to the plugin's CHANGELOG.md.
+  const changelogPath = path.join(local.dir, "CHANGELOG.md");
+  const existingChangelog = fs.existsSync(changelogPath)
+    ? fs.readFileSync(changelogPath, "utf8")
+    : undefined;
+  const entry = renderChangelogEntry(
+    next,
+    subjects,
+    new Date().toISOString().slice(0, 10),
+  );
+  fs.writeFileSync(
+    changelogPath,
+    prependChangelogEntry(existingChangelog, entry),
+  );
+
+  // Propagate to catalog + README + AGENTS.md.
   await syncCommand(root, { quiet: true });
 
   p.log.success(`${name}: ${current} -> ${pc.green(next)} (${level})`);
