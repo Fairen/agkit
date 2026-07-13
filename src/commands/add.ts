@@ -14,12 +14,25 @@ import {
   readMarketplace,
   writeMarketplace,
 } from "../lib/marketplace.js";
-import { resolveTemplate } from "../lib/templates.js";
+import {
+  isRemoteSpec,
+  resolveRemoteSource,
+  resolveTemplate,
+} from "../lib/templates.js";
 import { syncCommand } from "./sync.js";
 
 export interface AddOptions {
   description?: string;
   interactive?: boolean;
+  /**
+   * Clone the remote repo and scaffold from its files (the old behavior),
+   * instead of the default: registering it as a remote reference.
+   */
+  vendor?: boolean;
+  /** Branch/tag to pin the remote source to (reference mode). */
+  ref?: string;
+  /** Commit SHA (40 hex) to pin the remote source to (reference mode). */
+  sha?: string;
 }
 
 function titleCase(kebab: string): string {
@@ -58,6 +71,11 @@ export async function addPlugin(
     templateSpec = answer;
   }
 
+  // A remote git spec is referenced (no clone) by default; --vendor opts back
+  // into cloning it and scaffolding from its files. Built-in names and local
+  // paths are always scaffolded.
+  const reference = isRemoteSpec(templateSpec) && opts.vendor !== true;
+
   let name = nameArg;
   if (!name) {
     const answer = await p.text({
@@ -84,13 +102,6 @@ export async function addPlugin(
     return;
   }
 
-  const destDir = path.join(pluginRootDir(root, mp), name);
-  if (fs.existsSync(destDir)) {
-    p.log.error(`Directory already exists: ${destDir}`);
-    process.exitCode = 1;
-    return;
-  }
-
   let description = opts.description;
   if (description === undefined && opts.interactive !== false) {
     const answer = await p.text({
@@ -102,6 +113,42 @@ export async function addPlugin(
     description = answer;
   }
   description = description || `TODO: describe what ${name} does.`;
+
+  // Reference mode (default for remote git specs): register the git source as a
+  // remote reference. Nothing is cloned and no files are created — the agent
+  // fetches the plugin from its own repo at install time, and its
+  // version/manifest live there, not in this catalog.
+  if (reference) {
+    let remote: ReturnType<typeof resolveRemoteSource>;
+    try {
+      remote = resolveRemoteSource(templateSpec, {
+        ref: opts.ref,
+        sha: opts.sha,
+      });
+    } catch (err) {
+      p.log.error((err as Error).message);
+      process.exitCode = 1;
+      return;
+    }
+    mp.plugins.push({ name, source: remote.source, description });
+    writeMarketplace(root, mp);
+    await syncCommand(root, { quiet: true });
+
+    p.log.success(
+      `Registered ${pc.cyan(name)} as a remote plugin (${remote.label}) in marketplace.json — nothing was cloned.`,
+    );
+    p.log.info(
+      `Claude Code fetches it from the source at install time:\n  claude\n  /plugin marketplace add ${root}\n  /plugin install ${name}@${mp.name}\n(pass --vendor to clone it into ${mp.metadata?.pluginRoot ?? "./plugins"} instead)`,
+    );
+    return;
+  }
+
+  const destDir = path.join(pluginRootDir(root, mp), name);
+  if (fs.existsSync(destDir)) {
+    p.log.error(`Directory already exists: ${destDir}`);
+    process.exitCode = 1;
+    return;
+  }
 
   const vars = {
     pluginName: name,

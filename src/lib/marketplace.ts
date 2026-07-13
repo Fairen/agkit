@@ -14,6 +14,22 @@ export interface Person {
   url?: string;
 }
 
+/**
+ * Object source forms accepted by the official marketplace schema for plugins
+ * hosted outside the marketplace repo (fetched by the agent at install time,
+ * never vendored into the catalog). See `resolveRemoteSource`.
+ */
+export type RemotePluginSource =
+  | { source: "github"; repo: string; ref?: string; sha?: string }
+  | { source: "url"; url: string; ref?: string; sha?: string }
+  | {
+      source: "git-subdir";
+      url: string;
+      path: string;
+      ref?: string;
+      sha?: string;
+    };
+
 export interface PluginEntry {
   name: string;
   source: string | Record<string, unknown>;

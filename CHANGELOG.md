@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.9.0
+
+### Added
+- **`agkit init --plugin [template]` scaffolds a standalone plugin** (just `.claude-plugin/plugin.json` + the template content) in a directory, **without** a surrounding marketplace. The folder becomes its own git repo — unless it's already inside one (e.g. dropped into a marketplace's `plugins/`), avoiding a nested repo — so it can be pushed and then referenced from any catalog with `agkit add <owner/repo> <name>`. Template, name, description, and author come from `--plugin <template>` / `--name` / `-d` / `--owner` (prompted otherwise; `-y` defaults to the `skill` template).
+
+### Changed
+- **Node.js ≥ 22 is now required** (was ≥ 18). `engines.node` is `>=22.0.0`, the tsup build target is `node22`, TypeScript targets ES2023, and CI runs on Node 22.x/24.x. Node 18/20 are no longer supported.
+- **`agkit add` references a remote git repo by default instead of cloning it.** Previously a git spec (`gh:`/`gl:`/URL, and now bare `owner/repo`) was always a *template*: agkit cloned it and vendored the files into `plugins/<name>/`. Now a remote source is registered as the schema's object `source` — `{ "source": "github", "repo": … }`, `{ "source": "url", "url": … }`, or `{ "source": "git-subdir", "url": …, "path": … }` — so the plugin stays in its own repo and the agent fetches it at install time. No files are created; `sync`/`validate` already leave remote sources untouched. Pin the fetch with `--ref <branch|tag>` and `--sha <commit>`.
+- **`--vendor` opts back into the old clone-and-scaffold behavior** for a remote template repo (built-in names and local paths are still always scaffolded, unchanged).
+
+### Internal
+- **Command-level tests.** Added integration tests for `add` (github/url/git-subdir referencing, `#ref`/`--sha` pinning, built-in scaffolding, `--vendor` clone, duplicate-name guard), `init --plugin` (standalone scaffold, overwrite guard, no nested repo), `sync` (adopt/drift/orphan, remote sources untouched), and `validate` (well-formed vs. duplicate/missing/dangling sources, with the Claude CLI stubbed out). Suite is now 68 tests.
+
 ## 0.8.0
 
 ### Added

@@ -15,18 +15,28 @@ import {
   DEFAULT_PLUGIN_ROOT,
   KEBAB_CASE_RE,
   MARKETPLACE_SCHEMA_URL,
+  PLUGIN_TEMPLATES,
   RESERVED_MARKETPLACE_NAMES,
+  TEMPLATE_DESCRIPTIONS,
 } from "../lib/constants.js";
-import { renderTemplate, templatesDir, writeJson } from "../lib/fsutils.js";
+import {
+  copyTemplateDir,
+  readJson,
+  renderTemplate,
+  templatesDir,
+  writeJson,
+} from "../lib/fsutils.js";
 import {
   getOriginUrl,
   gitInit,
   isGitAvailable,
   isGitRepo,
+  isInsideGitRepo,
   parseRemoteUrl,
   type RemoteInfo,
 } from "../lib/git.js";
 import type { Marketplace } from "../lib/marketplace.js";
+import { resolveTemplate } from "../lib/templates.js";
 import { addPlugin } from "./add.js";
 
 export interface InitOptions {
@@ -38,6 +48,19 @@ export interface InitOptions {
   ci?: "github" | "gitlab" | "none";
   agents?: string;
   yes?: boolean;
+  /**
+   * Scaffold a standalone plugin (no marketplace) instead. `true` when `--plugin`
+   * is passed without a value (template is then prompted / defaults to skill);
+   * a string is the chosen template spec.
+   */
+  plugin?: string | boolean;
+}
+
+function titleCase(kebab: string): string {
+  return kebab
+    .split("-")
+    .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+    .join(" ");
 }
 
 function validateName(name: string): string | undefined {
@@ -78,13 +101,174 @@ function teamSource(remote: RemoteInfo | undefined): string {
     .join("\n");
 }
 
+/**
+ * Scaffold a standalone plugin (a directory with `.claude-plugin/plugin.json`
+ * and its content) without a surrounding marketplace. The result is its own
+ * git repo, ready to be referenced from any marketplace with `agkit add`.
+ */
+async function initPlugin(
+  targetDir: string,
+  templateSpec: string | boolean,
+  opts: InitOptions,
+): Promise<void> {
+  p.intro(pc.bgCyan(pc.black("  agkit init --plugin  ")));
+
+  const defaultName = path
+    .basename(targetDir)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  // Template: use the --plugin value, else prompt (or default to skill with -y).
+  let spec = typeof templateSpec === "string" ? templateSpec : undefined;
+  if (!spec) {
+    if (opts.yes) {
+      spec = "skill";
+    } else {
+      const answer = await p.select({
+        message: "Plugin template",
+        options: PLUGIN_TEMPLATES.map((t) => ({
+          value: t as string,
+          label: t,
+          hint: TEMPLATE_DESCRIPTIONS[t],
+        })),
+      });
+      if (p.isCancel(answer)) return cancel();
+      spec = answer;
+    }
+  }
+
+  let name = opts.name;
+  if (!name && !opts.yes) {
+    const answer = await p.text({
+      message: "Plugin name (kebab-case)",
+      initialValue: defaultName,
+      validate: (v) =>
+        KEBAB_CASE_RE.test(v)
+          ? undefined
+          : "Must be kebab-case (lowercase, digits, hyphens)",
+    });
+    if (p.isCancel(answer)) return cancel();
+    name = answer;
+  }
+  name = name || defaultName;
+  if (!KEBAB_CASE_RE.test(name)) {
+    p.log.error(`Plugin name "${name}" must be kebab-case.`);
+    process.exitCode = 1;
+    return;
+  }
+
+  let description = opts.description;
+  if (description === undefined && !opts.yes) {
+    const answer = await p.text({
+      message: "One-line description",
+      defaultValue: "",
+      placeholder: `What does ${name} do?`,
+    });
+    if (p.isCancel(answer)) return cancel();
+    description = answer;
+  }
+  description = description || `TODO: describe what ${name} does.`;
+
+  // Don't clobber an existing plugin (or marketplace) in the target dir.
+  const manifestPath = path.join(targetDir, ".claude-plugin", "plugin.json");
+  if (fs.existsSync(manifestPath)) {
+    p.log.error(`A plugin already exists here: ${manifestPath}`);
+    process.exitCode = 1;
+    return;
+  }
+
+  const s = p.spinner();
+  s.start("Scaffolding plugin");
+  fs.mkdirSync(targetDir, { recursive: true });
+
+  const vars = {
+    pluginName: name,
+    pluginTitle: titleCase(name),
+    description,
+    authorName: opts.owner || "Unknown",
+  };
+
+  let resolved: ReturnType<typeof resolveTemplate>;
+  try {
+    resolved = resolveTemplate(spec);
+  } catch (err) {
+    s.stop("Scaffolding failed");
+    p.log.error((err as Error).message);
+    process.exitCode = 1;
+    return;
+  }
+  try {
+    copyTemplateDir(resolved.dir, targetDir, vars);
+  } finally {
+    if (resolved.cleanup)
+      fs.rmSync(resolved.cleanup, { recursive: true, force: true });
+  }
+
+  // Remote/local templates may ship a plain plugin.json: force the chosen name.
+  if (!resolved.builtin && fs.existsSync(manifestPath)) {
+    try {
+      const manifest = readJson<Record<string, unknown>>(manifestPath);
+      manifest.name = name;
+      if (opts.description) manifest.description = description;
+      writeJson(manifestPath, manifest);
+    } catch {
+      p.log.warn("Template plugin.json could not be parsed; left as-is.");
+    }
+  }
+
+  // Make it its own repo so it can be pushed and referenced remotely — but only
+  // when it isn't already inside one (e.g. dropped into a marketplace's
+  // plugins/), to avoid creating a nested git repo.
+  const standalone = !isInsideGitRepo(targetDir);
+  if (standalone) {
+    const gitignore = path.join(targetDir, ".gitignore");
+    if (!fs.existsSync(gitignore)) {
+      fs.writeFileSync(
+        gitignore,
+        ["node_modules/", ".DS_Store", "*.log", ""].join("\n"),
+      );
+    }
+    if (isGitAvailable()) {
+      try {
+        gitInit(targetDir);
+      } catch {
+        p.log.warn("git init failed; initialize the repository manually.");
+      }
+    }
+  }
+
+  s.stop("Plugin scaffolded");
+
+  const rel = path.relative(process.cwd(), targetDir) || ".";
+  p.note(
+    [
+      `Standalone plugin "${name}" (${resolved.label}) — no marketplace was created.`,
+      "",
+      "Distribute it either way:",
+      "  • Push this folder to its own git repo, then reference it from a",
+      `    marketplace:  agkit add <owner/repo> ${name}`,
+      "  • Or drop it into an existing marketplace's plugins/ and run:",
+      "    agkit sync",
+    ].join("\n"),
+    `Next steps  (cd ${rel})`,
+  );
+  p.outro("Done ✔");
+}
+
 export async function initCommand(
   dirArg: string | undefined,
   opts: InitOptions,
 ): Promise<void> {
+  const targetDir = path.resolve(dirArg ?? ".");
+
+  // Standalone-plugin mode: scaffold just a plugin directory, no marketplace.
+  if (opts.plugin) {
+    return initPlugin(targetDir, opts.plugin, opts);
+  }
+
   p.intro(pc.bgCyan(pc.black("  agkit init  ")));
 
-  const targetDir = path.resolve(dirArg ?? ".");
   const defaultName = path
     .basename(targetDir)
     .toLowerCase()

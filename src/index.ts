@@ -24,16 +24,28 @@ program
 program
   .command("init")
   .argument("[dir]", "target directory (default: current directory)")
-  .description("Scaffold a new plugin marketplace (git-first)")
-  .option("-n, --name <name>", "marketplace name (kebab-case)")
-  .option("-o, --owner <owner>", "owner name")
+  .description(
+    "Scaffold a new plugin marketplace (git-first), or a standalone plugin with --plugin",
+  )
+  .option(
+    "-n, --name <name>",
+    "marketplace (or plugin, with --plugin) name (kebab-case)",
+  )
+  .option("-o, --owner <owner>", "owner / plugin author name")
   .option("-e, --email <email>", "owner email")
-  .option("-d, --description <text>", "marketplace description")
+  .option(
+    "-d, --description <text>",
+    "marketplace (or plugin, with --plugin) description",
+  )
   .option("-r, --repo <url>", "git remote URL (any forge)")
   .option("--ci <ci>", "CI workflow: github | gitlab | none")
   .option(
     "--agents <list>",
     "comma-separated target agents (e.g. claude-code,copilot,codex)",
+  )
+  .option(
+    "--plugin [template]",
+    "scaffold a standalone plugin (skill|command|agent|hook|mcp, or a template spec) in [dir] instead of a marketplace",
   )
   .option("-y, --yes", "non-interactive, accept defaults")
   .action(async (dir, opts) => {
@@ -44,17 +56,29 @@ program
   .command("add")
   .argument(
     "[template]",
-    "template name, local path, gh:/gl: shorthand, or git URL (see `agkit list`)",
+    "built-in template name, local path, or remote git source (owner/repo, gh:/gl: shorthand, git URL). Remote sources are referenced, not cloned (see --vendor).",
   )
   .argument("[name]", "plugin name (kebab-case)")
   .description(
-    "Scaffold a plugin from a template and register it in the catalog",
+    "Register a plugin in the catalog: reference a remote git repo, or scaffold from a built-in/local template",
   )
   .option("-d, --description <text>", "one-line plugin description")
+  .option(
+    "--vendor",
+    "clone the remote repo and scaffold from its files into the marketplace, instead of referencing it",
+  )
+  .option("--ref <ref>", "branch or tag to pin a referenced remote source to")
+  .option(
+    "--sha <sha>",
+    "commit hash (40 hex) to pin a referenced remote source to",
+  )
   .action(async (template, name, opts) => {
     await addPlugin(process.cwd(), template, name, {
       description: opts.description,
       interactive: opts.description === undefined,
+      vendor: opts.vendor,
+      ref: opts.ref,
+      sha: opts.sha,
     });
   });
 

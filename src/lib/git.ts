@@ -27,6 +27,17 @@ export function isGitRepo(dir: string): boolean {
   return fs.existsSync(path.join(dir, ".git"));
 }
 
+/** True if `dir` or any of its ancestors is a git repo (walks up to the root). */
+export function isInsideGitRepo(dir: string): boolean {
+  let d = path.resolve(dir);
+  for (;;) {
+    if (fs.existsSync(path.join(d, ".git"))) return true;
+    const parent = path.dirname(d);
+    if (parent === d) return false;
+    d = parent;
+  }
+}
+
 export function gitInit(dir: string): void {
   execFileSync("git", ["init", "--initial-branch=main"], {
     cwd: dir,
