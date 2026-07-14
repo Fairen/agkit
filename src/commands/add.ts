@@ -1,7 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
 import * as p from "@clack/prompts";
-import pc from "picocolors";
 import {
   KEBAB_CASE_RE,
   PLUGIN_TEMPLATES,
@@ -19,6 +18,7 @@ import {
   resolveRemoteSource,
   resolveTemplate,
 } from "../lib/templates.js";
+import { indigo } from "../lib/theme.js";
 import { syncCommand } from "./sync.js";
 
 export interface AddOptions {
@@ -135,7 +135,7 @@ export async function addPlugin(
     await syncCommand(root, { quiet: true });
 
     p.log.success(
-      `Registered ${pc.cyan(name)} as a remote plugin (${remote.label}) in marketplace.json — nothing was cloned.`,
+      `Registered ${indigo(name)} as a remote plugin (${remote.label}) in marketplace.json — nothing was cloned.`,
     );
     p.log.info(
       `Claude Code fetches it from the source at install time:\n  claude\n  /plugin marketplace add ${root}\n  /plugin install ${name}@${mp.name}\n(pass --vendor to clone it into ${mp.metadata?.pluginRoot ?? "./plugins"} instead)`,
@@ -198,7 +198,7 @@ export async function addPlugin(
   await syncCommand(root, { quiet: true });
 
   p.log.success(
-    `Created ${pc.cyan(path.relative(startDir, destDir) || destDir)} (${template} template) and registered it in marketplace.json`,
+    `Created ${indigo(path.relative(startDir, destDir) || destDir)} (${template} template) and registered it in marketplace.json`,
   );
   p.log.info(
     `Edit the generated files, then test locally:\n  claude\n  /plugin marketplace add ${root}\n  /plugin install ${name}@${mp.name}`,

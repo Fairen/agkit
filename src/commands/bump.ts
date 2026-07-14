@@ -2,7 +2,6 @@ import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import * as p from "@clack/prompts";
-import pc from "picocolors";
 import { MARKETPLACE_DIR, PLUGIN_MANIFEST_FILE } from "../lib/constants.js";
 import { prependChangelogEntry, renderChangelogEntry } from "../lib/docs.js";
 import { readJson, writeJson } from "../lib/fsutils.js";
@@ -12,6 +11,7 @@ import {
   readMarketplace,
   scanLocalPlugins,
 } from "../lib/marketplace.js";
+import { indigo, success } from "../lib/theme.js";
 import { syncCommand } from "./sync.js";
 
 export type BumpLevel = "major" | "minor" | "patch";
@@ -182,7 +182,7 @@ export async function bumpCommand(
     }
     level = analysis.level;
     p.log.info(
-      `${analysis.commits} commit(s)${sinceTag ? ` since ${pc.cyan(sinceTag)}` : " (no previous release tag)"}:\n  ` +
+      `${analysis.commits} commit(s)${sinceTag ? ` since ${indigo(sinceTag)}` : " (no previous release tag)"}:\n  ` +
         analysis.reasons.slice(0, 12).join("\n  ") +
         (analysis.reasons.length > 12
           ? `\n  … ${analysis.reasons.length - 12} more`
@@ -204,7 +204,7 @@ export async function bumpCommand(
 
   if (opts.dryRun) {
     p.log.info(
-      `[dry-run] ${name}: ${current} -> ${pc.green(next)} (${level})${opts.tag ? ` + tag ${tagName}` : ""} + CHANGELOG.md entry`,
+      `[dry-run] ${name}: ${current} -> ${success(next)} (${level})${opts.tag ? ` + tag ${tagName}` : ""} + CHANGELOG.md entry`,
     );
     return;
   }
@@ -236,7 +236,7 @@ export async function bumpCommand(
   // Propagate to catalog + README + AGENTS.md.
   await syncCommand(root, { quiet: true });
 
-  p.log.success(`${name}: ${current} -> ${pc.green(next)} (${level})`);
+  p.log.success(`${name}: ${current} -> ${success(next)} (${level})`);
 
   if (opts.tag) {
     try {
@@ -244,7 +244,7 @@ export async function bumpCommand(
       git(root, ["commit", "-m", `chore(release): ${tagName}`]);
       git(root, ["tag", tagName]);
       p.log.success(
-        `Committed and tagged ${pc.cyan(tagName)} — push with: git push --follow-tags`,
+        `Committed and tagged ${indigo(tagName)} — push with: git push --follow-tags`,
       );
     } catch (err) {
       p.log.warn(

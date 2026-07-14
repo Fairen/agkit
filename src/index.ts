@@ -7,6 +7,7 @@ import { initCommand } from "./commands/init.js";
 import { listCommand } from "./commands/list.js";
 import { syncCommand } from "./commands/sync.js";
 import { validateCommand } from "./commands/validate.js";
+import { logo } from "./lib/theme.js";
 
 const { version } = JSON.parse(
   readFileSync(new URL("../package.json", import.meta.url), "utf8"),
@@ -19,7 +20,9 @@ program
   .description(
     "Scaffold and manage plugin marketplaces for Claude Code and GitHub Copilot, distributed via any Git host.",
   )
-  .version(version);
+  .version(version)
+  // Brand the top of `--help` / bare invocation with the monolith logo.
+  .addHelpText("beforeAll", `\n${logo()}`);
 
 program
   .command("init")

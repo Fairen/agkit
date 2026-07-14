@@ -1,7 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
 import * as p from "@clack/prompts";
-import pc from "picocolors";
 import {
   AGENT_ADAPTERS,
   DEFAULT_AGENTS,
@@ -37,6 +36,7 @@ import {
 } from "../lib/git.js";
 import type { Marketplace } from "../lib/marketplace.js";
 import { resolveTemplate } from "../lib/templates.js";
+import { banner } from "../lib/theme.js";
 import { addPlugin } from "./add.js";
 
 export interface InitOptions {
@@ -111,7 +111,7 @@ async function initPlugin(
   templateSpec: string | boolean,
   opts: InitOptions,
 ): Promise<void> {
-  p.intro(pc.bgCyan(pc.black("  agkit init --plugin  ")));
+  p.intro(banner("agkit init --plugin"));
 
   const defaultName = path
     .basename(targetDir)
@@ -267,7 +267,7 @@ export async function initCommand(
     return initPlugin(targetDir, opts.plugin, opts);
   }
 
-  p.intro(pc.bgCyan(pc.black("  agkit init  ")));
+  p.intro(banner("agkit init"));
 
   const defaultName = path
     .basename(targetDir)

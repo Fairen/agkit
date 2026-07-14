@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="100%" height="100%" role="img" aria-labelledby="agkit-logo-title">
+  <title id="agkit-logo-title">agkit — AGent marketplace KIT</title>
+  <defs>
+    <!-- Modern and ultra-sharp neon gradient -->
+    <linearGradient id="brandGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#6366f1" />   <!-- Indigo -->
+      <stop offset="50%" stop-color="#a855f7" />  <!-- Purple -->
+      <stop offset="100%" stop-color="#ec4899" /> <!-- Pink -->
+    </linearGradient>
+
+    <!-- Subtly tuned glow for professional premium finish -->
+    <filter id="subtleGlow" x="-10%" y="-10%" width="120%" height="120%">
+      <feGaussianBlur stdDeviation="5" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Dark Tech Background -->
+  <rect width="100%" height="100%" fill="#0B0F19" rx="24" />
+
+  <!-- THE ISOMETRIC MONOLITH -->
+  <g filter="url(#subtleGlow)" transform="translate(250, 250)">
+    
+    <!-- Left Face of the Cube (Shaded / Deepest) -->
+    <path d="M 0 0 L -100 -58 L -100 58 L 0 116 Z" fill="#121826" stroke="url(#brandGrad)" stroke-width="8" stroke-linejoin="round" />
+    
+    <!-- Right Face of the Cube (Marketplace slot pane) -->
+    <path d="M 0 0 L 100 -58 L 100 58 L 0 116 Z" fill="#161e2e" stroke="url(#brandGrad)" stroke-width="8" stroke-linejoin="round" />
+    
+    <!-- Top Face (Opening Lid) -->
+    <path d="M 0 0 L -100 -58 L 0 -116 L 100 -58 Z" fill="#0B0F19" stroke="url(#brandGrad)" stroke-width="8" stroke-linejoin="round" />
+
+    <!-- CLI CHEVRON '>': Engraved / glowing deep within the cube top perspective -->
+    <path d="M -60 -93 L 0 -58 L -60 -23" fill="none" stroke="url(#brandGrad)" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" />
+    
+    <!-- CLI CURSOR '_': Positioned elegantly on the right face perspective plane -->
+    <line x1="30" y1="-23" x2="70" y2="-46" stroke="url(#brandGrad)" stroke-width="12" stroke-linecap="round" />
+    
+    <!-- Hook connection slot (Modular integration hint) on the front-bottom edge -->
+    <path d="M 0 40 L 40 17" fill="none" stroke="#6366f1" stroke-width="8" stroke-linecap="round" opacity="0.6" />
+    
+  </g>
+</svg>

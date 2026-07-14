@@ -2,7 +2,6 @@ import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import * as p from "@clack/prompts";
-import pc from "picocolors";
 import { getAdapter } from "../lib/agents.js";
 import {
   KEBAB_CASE_RE,
@@ -17,6 +16,7 @@ import {
   readMarketplace,
   resolveLocalPluginDir,
 } from "../lib/marketplace.js";
+import { error, success } from "../lib/theme.js";
 
 interface Finding {
   level: "error" | "warn";
@@ -227,14 +227,14 @@ export async function validateCommand(
 
   if (errors.length > 0) {
     p.log.error(
-      pc.red(
+      error(
         `Validation failed: ${errors.length} error(s), ${warns.length} warning(s).`,
       ),
     );
     process.exitCode = 1;
   } else {
     p.log.success(
-      pc.green(
+      success(
         `${path.relative(process.cwd(), marketplacePath(root)) || marketplacePath(root)} is valid` +
           (warns.length ? ` (${warns.length} warning(s))` : "") +
           (officialRan ? "" : " [local checks only]"),

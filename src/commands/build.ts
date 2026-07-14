@@ -1,7 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
 import * as p from "@clack/prompts";
-import pc from "picocolors";
 import {
   type BuildContext,
   type GeneratedFile,
@@ -15,6 +14,7 @@ import {
   readMarketplace,
   scanLocalPlugins,
 } from "../lib/marketplace.js";
+import { indigo } from "../lib/theme.js";
 
 export interface BuildOptions {
   targets?: string;
@@ -128,7 +128,7 @@ export async function buildCommand(
       .filter(Boolean)
       .join(", ");
     p.log.success(
-      `Built ${files.length} file(s) for ${pc.cyan(ids.join(", "))}.\n` +
+      `Built ${files.length} file(s) for ${indigo(ids.join(", "))}.\n` +
         `Registries: ${registries}\n` +
         "Commit the generated files so consumers can install from these agents.",
     );

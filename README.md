@@ -1,5 +1,7 @@
 <div align="center">
 
+<img src="https://raw.githubusercontent.com/Fairen/agkit/main/agkit.svg" alt="agkit — the isometric monolith logo" width="128" height="128" />
+
 # **AG**ent marketplace **KIT**
 
 **One canonical catalog → every AI coding agent → any Git forge.**
@@ -7,11 +9,11 @@
 Scaffold and manage **plugin marketplaces for Claude Code · GitHub Copilot · OpenAI Codex · Cursor**,
 distributed through **any Git host** — GitHub, GitLab, Bitbucket, Gitea, or a self‑hosted forge.
 
-[![npm version](https://img.shields.io/npm/v/agkit?color=cb3837&logo=npm&label=agkit)](https://www.npmjs.com/package/agkit)
-[![npm downloads](https://img.shields.io/npm/dm/agkit?color=cb3837&logo=npm)](https://www.npmjs.com/package/agkit)
+[![npm version](https://img.shields.io/npm/v/agkit?color=6366f1&logo=npm&logoColor=white&label=agkit)](https://www.npmjs.com/package/agkit)
+[![npm downloads](https://img.shields.io/npm/dm/agkit?color=a855f7&logo=npm&logoColor=white)](https://www.npmjs.com/package/agkit)
 [![CI](https://github.com/Fairen/agkit/actions/workflows/ci.yml/badge.svg)](https://github.com/Fairen/agkit/actions/workflows/ci.yml)
 [![Node.js](https://img.shields.io/node/v/agkit?color=339933&logo=node.js&logoColor=white)](https://nodejs.org)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/License-MIT-ec4899.svg)](LICENSE)
 
 *`init` · `add` · `build` · `sync` · `bump` · `validate` · `list`*
 
